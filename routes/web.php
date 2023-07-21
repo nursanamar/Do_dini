@@ -19,4 +19,5 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
     });
 
     Route::get('/fileupload', 'FileUploadController@index')->name('fileupload.index');
+    Route::get('hasil', 'HasilController@index')->name('hasil.index');
 });
