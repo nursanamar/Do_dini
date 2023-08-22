@@ -26,7 +26,8 @@
                     <!--begin::User-->
                     <div class="d-flex justify-content-center flex-column me-3">
                         <a href="#"
-                            class="fs-4 fw-bolder text-gray-900 text-hover-primary me-1 lh-1 title_side_form">Tambah Data Mahasiswa</a>
+                            class="fs-4 fw-bolder text-gray-900 text-hover-primary me-1 lh-1 title_side_form">Tambah Data
+                            Mahasiswa</a>
                     </div>
                     <!--end::User-->
                 </div>
@@ -58,14 +59,15 @@
             <!--end::Card header-->
             <!--begin::Card body-->
             <div class="card-body hover-scroll-overlay-y">
-                <form class="form-data">
+                <form class="form-data" enctype="multipart/form-data">
 
                     <input type="hidden" name="id">
                     <input type="hidden" name="uuid">
 
                     <div class="mb-10">
-                        <label for="formFile" class="form-label">Tambahkan Data Mahsiswa</label>
-  <input class="form-control" type="file" id="formFile">
+                        <label for="file_excel" class="form-label">Tambahkan Data Mahsiswa</label>
+                        <input class="form-control" accept=".xlsx" type="file" name="file_excel" id="file_excel">
+                        <small class="text-danger file_excel_error"></small>
                     </div>
 
                     <div class="separator separator-dashed mt-8 mb-5"></div>
@@ -141,4 +143,60 @@
         </div>
         <!--end::Container-->
     </div>
+@endsection
+@section('script')
+    <script>
+        let control = new Control();
+        $(document).on('click', '#button-side-form', function() {
+            control.overlay_form('Tambah', 'Data Mahasiswa');
+        })
+
+        $(document).on('submit', ".form-data", function(e) {
+            e.preventDefault();
+            let type = $(this).attr('data-type');
+            if (type == 'add') {
+                control.submitFormMultipartData('upload', 'Tambah', 'Data Mahasiswa',
+                    'POST');
+            } else {
+                let uuid = $("input[name='uuid']").val();
+                control.submitFormMultipartData('upload' + uuid, 'Update',
+                    'Data Mahasiswa', 'POST');
+            }
+        });
+
+        $(document).on('keyup', '#search_', function(e) {
+            e.preventDefault();
+            control.searchTable(this.value);
+        })
+        let columns = [{
+                data: null,
+                render: function(data, type, row, meta) {
+                    console.log(row);
+                    return meta.row + 1;
+                }
+            },
+            {
+                data: 'nim'
+            },
+            {
+                data: 'nama'
+            },
+            {
+                data: 'semester_1'
+            },
+            {
+                data: 'semester_2'
+            },
+            {
+                data: 'semester_3'
+            },
+            {
+                data: 'semester_4'
+            }
+        ];
+
+        $(function() {
+            control.initDatatable('/get-all', columns);
+        })
+    </script>
 @endsection
