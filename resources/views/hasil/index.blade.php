@@ -7,12 +7,18 @@
                 <div class="card">
                     <div class="card-body p-0">
                         <div class="mt-5">
-                            <div class="fs-4 text row mb-3">
-                                <label for="inputcrossvalidation" class="col-sm-2 col-form-label">Cross Validation</label>
-                                <div class="col-sm-1">
-                                    <input type="text" class="form-control" id="inputcrossvalidation">
+                            <form class="form-data" id="cross-validation-form">
+                                <div class="fs-4 text row mb-3">
+                                    <label for="inputcrossvalidation" class="col-sm-2 col-form-label">Cross
+                                        Validation</label>
+                                    <div class="col-sm-1">
+                                        <input type="number" class="form-control" id="inputcrossvalidation">
+                                    </div>
                                 </div>
-                            </div>
+                                <div class="d-flex my-5">
+                                    <button class="btn btn-primary btn-sm " id="button-side-form"></i> Uji Data</button>
+                                </div>
+                            </form>
                             <div class="fs-4 row">
                                 <label for="inputakurasi" class="col-sm-2 col-form-label">Akurasi</label>
                                 <div class="col-sm-1">
@@ -49,20 +55,14 @@
                                             <th>No</th>
                                             <th>NIM</th>
                                             <th>Nama</th>
-                                            <th>Semester 1</th>
-                                            <th>Semester 2</th>
-                                            <th>Semester 3</th>
-                                            <th>Semester 4</th>
+                                            <th>Total Semester</th>
+                                            <th>Total IPK</th>
                                             <th>Ket</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                     </tbody>
                                 </table>
-                                <div class="d-flex justify-content-end mt-5">
-                                    <button class="btn btn-primary btn-sm " data-kt-drawer-show="true"
-                                        data-kt-drawer-target="#side_form" id="button-side-form"></i> Simpan</button>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -72,4 +72,86 @@
         </div>
         <!--end::Container-->
     </div>
+@endsection
+@section('script')
+    <script>
+        let control = new Control();
+
+        $(document).on('keyup', '#search_', function(e) {
+            e.preventDefault();
+            control.searchTable(this.value);
+        })
+
+        $(document).ready(function() {
+
+            $(document).on('submit', '.form-data', function(e) {
+                e.preventDefault(); // Prevent the default form submission
+
+                // Get the value from the input field
+                let crossValidationValue = $('#inputcrossvalidation').val();
+
+                // Validasi apakah input tidak kosong
+                if (crossValidationValue === '') {
+                    alert('The cross validation field is required.');
+                    return;
+                }
+
+                let columns = [{
+                        data: null,
+                        render: function(data, type, row, meta) {
+                            console.log(row);
+                            return meta.row + 1;
+                        }
+                    },
+                    {
+                        data: 'nim'
+                    },
+                    {
+                        data: 'nama'
+                    },
+                    {
+                        data: null,
+                        render: function(data, type, row, meta) {
+                            return row.semester + ' Semester';
+                        }
+                    },
+                    {
+                        data: 'ipk',
+                        render: function(data, type, row, meta) {
+                            // Format IPK to 2 decimal places
+                            if (type === 'display') {
+                                return parseFloat(data).toFixed(2);
+                            }
+                            return data;
+                        }
+                    },
+                    {
+                        data: 'keterangan'
+                    },
+                ];
+
+                control.initDatatable(`/prediksi/${crossValidationValue}`, columns);
+
+                // // Perform AJAX request
+                // $.ajax({
+                //     url: '/prediksi', // Sesuaikan URL sesuai kebutuhan Anda
+                //     method: 'GET', // Tentukan metode HTTP
+                //     data: {
+                //         crossValidation: crossValidationValue
+                //     }, // Kirim parameter ke fungsi
+                //     success: function(response) {
+                //         // Response dari fungsi predictDOStatus dapat diolah di sini
+                //         console.log(response);
+
+                //         // Initialize DataTable after the AJAX request is successful
+
+                //     },
+                //     error: function(error) {
+                //         console.error(error);
+                //     }
+                // });
+            });
+
+        });
+    </script>
 @endsection
