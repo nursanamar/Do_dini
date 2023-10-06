@@ -157,6 +157,13 @@ class HasilController extends BaseController
 
             return $mahasiswa;
         });
+        $this->getAcuracy($meanAccuracy);
         return $this->sendResponse($groupedMahasiswa->values(), 'Cross-validation completed');
+    }
+
+    public function getAcuracy($meanAccuracy)
+    {
+        // dd($meanAccuracy);
+        return $this->sendResponse($meanAccuracy, 'Acuracy completed');
     }
 }

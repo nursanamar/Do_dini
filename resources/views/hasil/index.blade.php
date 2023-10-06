@@ -99,7 +99,6 @@
                 let columns = [{
                         data: null,
                         render: function(data, type, row, meta) {
-                            console.log(row);
                             return meta.row + 1;
                         }
                     },
@@ -132,24 +131,21 @@
 
                 control.initDatatable(`/prediksi/${crossValidationValue}`, columns);
 
-                // // Perform AJAX request
-                // $.ajax({
-                //     url: '/prediksi', // Sesuaikan URL sesuai kebutuhan Anda
-                //     method: 'GET', // Tentukan metode HTTP
-                //     data: {
-                //         crossValidation: crossValidationValue
-                //     }, // Kirim parameter ke fungsi
-                //     success: function(response) {
-                //         // Response dari fungsi predictDOStatus dapat diolah di sini
-                //         console.log(response);
+                // Perform AJAX request
+                $.ajax({
+                    url: '/akurasi', // Sesuaikan URL sesuai kebutuhan Anda
+                    method: 'GET', // Tentukan metode HTTP
+                    success: function(response) {
+                        // Response dari fungsi predictDOStatus dapat diolah di sini
+                        console.log(response);
 
-                //         // Initialize DataTable after the AJAX request is successful
+                        // Initialize DataTable after the AJAX request is successful
 
-                //     },
-                //     error: function(error) {
-                //         console.error(error);
-                //     }
-                // });
+                    },
+                    error: function(error) {
+                        console.error(error);
+                    }
+                });
             });
 
         });
