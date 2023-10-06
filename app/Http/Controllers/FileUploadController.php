@@ -9,6 +9,7 @@ use App\Imports\ExcelImport;
 use App\Models\FileUpload;
 use App\Models\UploadExcel;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -63,6 +64,16 @@ class FileUploadController extends BaseController
         } catch (\Exception $e) {
             return $this->sendError('Error uploading and saving Excel: ' . $e->getMessage(), $e->getMessage(), 200);
         }
+    }
+
+    public function delete()
+    {
+        // Gantilah dengan logika penghapusan yang sesuai untuk aplikasi Anda
+        // Sebagai contoh, kita akan menghapus semua data dari tabel upload_excels
+        DB::table('upload_excels')->delete();
+
+        // Redirect atau berikan respons sesuai kebutuhan
+        return redirect()->back();
     }
 
 

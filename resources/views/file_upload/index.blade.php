@@ -4,14 +4,24 @@
         <!--begin::Page title-->
         <div data-kt-swapper="true" data-kt-swapper-mode="prepend"
             data-kt-swapper-parent="{default: '#kt_content_container', 'lg': '#kt_toolbar_container'}"
-            class="page-title d-flex align-items-center flex-wrap me-3 mb-5 mb-lg-0">
+            class="page-title d-flex align-items-center flex-wrap me-3 mb-5 mb-lg-0" style="gap: 10px">
             <!--begin::Title-->
-            <button class="btn btn-primary btn-sm " data-kt-drawer-show="true" data-kt-drawer-target="#side_form"
+            <button class="btn btn-primary btn-sm" data-kt-drawer-show="true" data-kt-drawer-target="#side_form"
                 id="button-side-form"><i class="fa fa-plus-circle" style="color:#ffffff" aria-hidden="true"></i> Tambah
                 Data</button>
+
+            <form method="POST" action="{{ route('fileupload.delete') }}">
+                @csrf
+                @method('DELETE')
+                <!-- Tombol atau elemen lainnya -->
+                <button class="btn mr-2 btn-light btn-cancel btn-sm d-flex align-items-center"
+                    style="background-color: #ea443e65; color: #EA443E"><i class="bi bi-trash-fill"
+                        style="color: #EA443E"></i>Hapus Semua Data</button>
+            </form>
             <!--end::Title-->
         </div>
         <!--end::Page title-->
+
     </div>
 @endsection
 @section('side-form')
@@ -168,6 +178,15 @@
             e.preventDefault();
             control.searchTable(this.value);
         })
+
+        $(document).on('click', '#hapus-data', function(e) {
+            e.preventDefault();
+            if (confirm('Apakah Anda yakin ingin menghapus semua data?')) {
+                let url = $(this).data('href');
+                window.location.href = url;
+            }
+        })
+
         let columns = [{
                 data: null,
                 render: function(data, type, row, meta) {
