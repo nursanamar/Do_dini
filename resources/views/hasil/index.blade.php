@@ -11,7 +11,7 @@
                                 <div class="fs-4 text row mb-3">
                                     <label for="inputcrossvalidation" class="col-sm-2 col-form-label">Cross
                                         Validation</label>
-                                    <div class="col-sm-1">
+                                    <div class="col-sm-2">
                                         <input type="number" class="form-control" id="inputcrossvalidation">
                                     </div>
                                 </div>
@@ -21,8 +21,8 @@
                             </form>
                             <div class="fs-4 row">
                                 <label for="inputakurasi" class="col-sm-2 col-form-label">Akurasi</label>
-                                <div class="col-sm-1">
-                                    <input type="percent" class="form-control" id="inputakurasi">
+                                <div class="col-sm-2">
+                                    <input type="percent" class="form-control" disabled id="inputakurasi">
                                 </div>
                             </div>
                         </div>
@@ -131,21 +131,21 @@
 
                 control.initDatatable(`/prediksi/${crossValidationValue}`, columns);
 
-                // Perform AJAX request
+                // Perform AJAX request for predictDOStatus
                 $.ajax({
-                    url: '/akurasi', // Sesuaikan URL sesuai kebutuhan Anda
+                    url: `/akurasi/${crossValidationValue}`, // Sesuaikan URL sesuai kebutuhan Anda
                     method: 'GET', // Tentukan metode HTTP
                     success: function(response) {
                         // Response dari fungsi predictDOStatus dapat diolah di sini
-                        console.log(response);
 
-                        // Initialize DataTable after the AJAX request is successful
-
+                        // Panggil fungsi untuk mengambil akurasi setelah mendapatkan respons dari predictDOStatus
+                        $('#inputakurasi').val(response.data + ' %')
                     },
                     error: function(error) {
                         console.error(error);
                     }
                 });
+
             });
 
         });
