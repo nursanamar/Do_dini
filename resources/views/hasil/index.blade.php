@@ -137,9 +137,9 @@
                     method: 'GET', // Tentukan metode HTTP
                     success: function(response) {
                         // Response dari fungsi predictDOStatus dapat diolah di sini
-
+                        let data = parseFloat(response.data).toFixed(2)
                         // Panggil fungsi untuk mengambil akurasi setelah mendapatkan respons dari predictDOStatus
-                        $('#inputakurasi').val(response.data + ' %')
+                        $('#inputakurasi').val(data + ' %')
                     },
                     error: function(error) {
                         console.error(error);
