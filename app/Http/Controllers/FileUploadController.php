@@ -18,16 +18,7 @@ class FileUploadController extends BaseController
     public function getAll()
     {
         $data = UploadExcel::all();
-
-        $groupedMahasiswa = $data->groupBy('nim')->map(function ($group) {
-            $mahasiswa = $group->first();
-            $mahasiswa['semester_1'] = $group->where('semester', 1)->pluck('ipk')->first();
-            $mahasiswa['semester_2'] = $group->where('semester', 2)->pluck('ipk')->first();
-            $mahasiswa['semester_3'] = $group->where('semester', 3)->pluck('ipk')->first();
-            $mahasiswa['semester_4'] = $group->where('semester', 4)->pluck('ipk')->first();
-            return $mahasiswa;
-        });
-        return $this->sendResponse($groupedMahasiswa->values(), 'Data Excel Fetched Success');
+        return $this->sendResponse($data, 'Data Excel Fetched Success');
     }
 
     public function index()
@@ -40,7 +31,7 @@ class FileUploadController extends BaseController
     {
         try {
             $request->validate([
-                'file_excel' => 'required|mimes:xls,xlsx|max:20048', // Batas ukuran file diatur menjadi 2MB (sesuaikan sesuai kebutuhan)
+                'file_excel' => 'required|mimes:xls,xlsx,csv|max:20048', // Batas ukuran file diatur menjadi 2MB (sesuaikan sesuai kebutuhan)
             ]);
 
             if ($request->hasFile('file_excel')) {

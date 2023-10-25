@@ -9,8 +9,8 @@
                         <div class="mt-5">
                             <form class="form-data" id="cross-validation-form">
                                 <div class="fs-4 text row mb-3">
-                                    <label for="inputcrossvalidation" class="col-sm-2 col-form-label">Cross
-                                        Validation</label>
+                                    <label for="inputcrossvalidation" class="col-sm-2 col-form-label">Information
+                                        Gain</label>
                                     <div class="col-sm-2">
                                         <input type="number" class="form-control" id="inputcrossvalidation">
                                     </div>
@@ -131,20 +131,20 @@
 
                 control.initDatatable(`/prediksi/${crossValidationValue}`, columns);
 
-                // Perform AJAX request for predictDOStatus
-                $.ajax({
-                    url: `/akurasi/${crossValidationValue}`, // Sesuaikan URL sesuai kebutuhan Anda
-                    method: 'GET', // Tentukan metode HTTP
-                    success: function(response) {
-                        // Response dari fungsi predictDOStatus dapat diolah di sini
-                        let data = parseFloat(response.data).toFixed(2)
-                        // Panggil fungsi untuk mengambil akurasi setelah mendapatkan respons dari predictDOStatus
-                        $('#inputakurasi').val(data + ' %')
-                    },
-                    error: function(error) {
-                        console.error(error);
-                    }
-                });
+                // // Perform AJAX request for predictDOStatus
+                // $.ajax({
+                //     url: `/akurasi/${crossValidationValue}`, // Sesuaikan URL sesuai kebutuhan Anda
+                //     method: 'GET', // Tentukan metode HTTP
+                //     success: function(response) {
+                //         // Response dari fungsi predictDOStatus dapat diolah di sini
+                //         let data = parseFloat(response.data).toFixed(2)
+                //         // Panggil fungsi untuk mengambil akurasi setelah mendapatkan respons dari predictDOStatus
+                //         $('#inputakurasi').val(data + ' %')
+                //     },
+                //     error: function(error) {
+                //         console.error(error);
+                //     }
+                // });
 
             });
 

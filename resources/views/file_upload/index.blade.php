@@ -52,8 +52,7 @@
                                 width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
                                 <g transform="translate(12.000000, 12.000000) rotate(-45.000000) translate(-12.000000, -12.000000) translate(4.000000, 4.000000)"
                                     fill="#000000">
-                                    <rect fill="#000000" x="0" y="7" width="16" height="2"
-                                        rx="1" />
+                                    <rect fill="#000000" x="0" y="7" width="16" height="2" rx="1" />
                                     <rect fill="#000000" opacity="0.5"
                                         transform="translate(8.000000, 8.000000) rotate(-270.000000) translate(-8.000000, -8.000000)"
                                         x="0" y="7" width="16" height="2" rx="1" />
@@ -76,7 +75,7 @@
 
                     <div class="mb-10">
                         <label for="file_excel" class="form-label">Tambahkan Data Mahsiswa</label>
-                        <input class="form-control" accept=".xlsx" type="file" name="file_excel" id="file_excel">
+                        <input class="form-control" accept=".xlsx, .csv" type="file" name="file_excel" id="file_excel">
                         <small class="text-danger file_excel_error"></small>
                     </div>
 
@@ -127,17 +126,65 @@
                         </div>
 
                         <div class="container">
-                            <div class="py-5">
-                                <table id="kt_table_data" class="table table-row-dashed table-row-gray-300 gy-7">
+                            <div class="py-5 table-responsive">
+                                <table id="kt_table_data"
+                                    class="table table-striped table-rounded border border-gray-300 table-row-bordered table-row-gray-300">
                                     <thead class="text-center">
                                         <tr class="fw-bolder fs-6 text-gray-800">
                                             <th>No</th>
-                                            <th>NIM</th>
-                                            <th>Nama</th>
-                                            <th>Semester 1</th>
-                                            <th>Semester 2</th>
-                                            <th>Semester 3</th>
-                                            <th>Semester 4</th>
+                                            <th>id masked</th>
+                                            <th>kategori sekolah</th>
+                                            <th>jenis kelamin</th>
+                                            <th>jalur seleksi</th>
+                                            <th>ips1</th>
+                                            <th>sks1</th>
+                                            <th>ips2</th>
+                                            <th>sks2</th>
+                                            <th>ips3</th>
+                                            <th>sks3</th>
+                                            <th>ips4</th>
+                                            <th>sks4</th>
+                                            <th>akidah akhlak</th>
+                                            <th>algoritma pemrograman</th>
+                                            <th>bahasa arab</th>
+                                            <th>bahasa indonesia</th>
+                                            <th>bahasa inggris</th>
+                                            <th>basis data</th>
+                                            <th>elektronika</th>
+                                            <th>etika profesi</th>
+                                            <th>fisika</th>
+                                            <th>ilmu al quran</th>
+                                            <th>ilmu fikih</th>
+                                            <th>ilmu hadis</th>
+                                            <th>interaksi manusia dan komputer</th>
+                                            <th>jaringan komputer</th>
+                                            <th>kecerdasan buatan</th>
+                                            <th>kepemimpinan dan teamwork</th>
+                                            <th>kewirausahaan</th>
+                                            <th>logika informatika</th>
+                                            <th>manajemen proyek teknologi informasi</th>
+                                            <th>manajemen umum</th>
+                                            <th>matematika diskrit</th>
+                                            <th>matematika komputer</th>
+                                            <th>matematika komputer dasar</th>
+                                            <th>mikroprosesor</th>
+                                            <th>organisasi dan arsitektur komputer</th>
+                                            <th>pemrograman berorientasi objek</th>
+                                            <th>pemrograman terstruktur</th>
+                                            <th>pemrograman visual</th>
+                                            <th>pemrograman web 2</th>
+                                            <th>pend pancasila dan kewarganegaraan</th>
+                                            <th>pengantar teknologi informasi</th>
+                                            <th>probabilitas dan statistik</th>
+                                            <th>rekayasa perangkat lunak</th>
+                                            <th>sejarah peradaban islam</th>
+                                            <th>sistem operasi komputer</th>
+                                            <th>struktur data</th>
+                                            <th>teknologi dan desain web</th>
+                                            <th>teknologi informasi</th>
+                                            <th>teknologi multimedia dan game</th>
+                                            <th>teori bahasa dan automata</th>
+                                            <th>class status</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -195,22 +242,163 @@
                 }
             },
             {
-                data: 'nim'
+                data: 'id_masked'
             },
             {
-                data: 'nama'
+                data: 'kategori_sekolah'
             },
             {
-                data: 'semester_1'
+                data: 'jenis_kelamin'
             },
             {
-                data: 'semester_2'
+                data: 'jalur_seleksi'
             },
             {
-                data: 'semester_3'
+                data: 'ips1'
             },
             {
-                data: 'semester_4'
+                data: 'sks1'
+            },
+            {
+                data: 'ips2'
+            },
+            {
+                data: 'sks2'
+            },
+            {
+                data: 'ips3'
+            },
+            {
+                data: 'sks3'
+            },
+            {
+                data: 'ips4'
+            },
+            {
+                data: 'sks4'
+            },
+            {
+                data: 'akidah_akhlak'
+            },
+            {
+                data: 'algoritma_pemrograman'
+            },
+            {
+                data: 'bahasa_arab'
+            },
+            {
+                data: 'bahasa_indonesia'
+            },
+            {
+                data: 'bahasa_inggris'
+            },
+            {
+                data: 'basis_data'
+            },
+            {
+                data: 'elektronika'
+            },
+            {
+                data: 'etika_profesi'
+            },
+            {
+                data: 'fisika'
+            },
+            {
+                data: 'ilmu_al_quran'
+            },
+            {
+                data: 'ilmu_fikih'
+            },
+            {
+                data: 'ilmu_hadis'
+            },
+            {
+                data: 'interaksi_manusia_dan_komputer'
+            },
+            {
+                data: 'jaringan_komputer'
+            },
+            {
+                data: 'kecerdasan_buatan'
+            },
+            {
+                data: 'kepemimpinan_dan_teamwork'
+            },
+            {
+                data: 'kewirausahaan'
+            },
+            {
+                data: 'logika_informatika'
+            },
+            {
+                data: 'manajemen_proyek_teknologi_informasi'
+            },
+            {
+                data: 'manajemen_umum'
+            },
+            {
+                data: 'matematika_diskrit'
+            },
+            {
+                data: 'matematika_komputer'
+            },
+            {
+                data: 'matematika_komputer_dasar'
+            },
+            {
+                data: 'mikroprosesor'
+            },
+            {
+                data: 'organisasi_dan_arsitektur_komputer'
+            },
+            {
+                data: 'pemrograman_berorientasi_objek'
+            },
+            {
+                data: 'pemrograman_terstruktur'
+            },
+            {
+                data: 'pemrograman_visual'
+            },
+            {
+                data: 'pemrograman_web_2'
+            },
+            {
+                data: 'pend_pancasila_dan_kewarganegaraan'
+            },
+            {
+                data: 'pengantar_teknologi_informasi'
+            },
+            {
+                data: 'probabilitas_dan_statistik'
+            },
+            {
+                data: 'rekayasa_perangkat_lunak'
+            },
+            {
+                data: 'sejarah_peradaban_islam'
+            },
+            {
+                data: 'sistem_operasi_komputer'
+            },
+            {
+                data: 'struktur_data'
+            },
+            {
+                data: 'teknologi_dan_desain_web'
+            },
+            {
+                data: 'teknologi_informasi'
+            },
+            {
+                data: 'teknologi_multimedia_dan_game'
+            },
+            {
+                data: 'teori_bahasa_dan_automata'
+            },
+            {
+                data: 'class_status'
             }
         ];
 
