@@ -31,7 +31,7 @@ class FileUploadController extends BaseController
     {
         try {
             $request->validate([
-                'file_excel' => 'required|mimes:xls,xlsx,csv|max:20048', // Batas ukuran file diatur menjadi 2MB (sesuaikan sesuai kebutuhan)
+                'file_excel' => 'nullable|mimes:xls,xlsx,csv|max:20048', // Batas ukuran file diatur menjadi 2MB (sesuaikan sesuai kebutuhan)
             ]);
 
             if ($request->hasFile('file_excel')) {

@@ -9,10 +9,10 @@
                         <div class="mt-5">
                             <form class="form-data" id="cross-validation-form">
                                 <div class="fs-4 text row mb-3">
-                                    <label for="inputcrossvalidation" class="col-sm-2 col-form-label">Information
+                                    <label for="informationgain" class="col-sm-2 col-form-label">Information
                                         Gain</label>
                                     <div class="col-sm-2">
-                                        <input type="number" class="form-control" id="inputcrossvalidation">
+                                        <input type="number" class="form-control" id="informationgain">
                                     </div>
                                 </div>
                                 <div class="d-flex my-5">
@@ -48,21 +48,18 @@
                         </div>
 
                         <div class="container">
-                            <div class="py-5">
-                                <table id="kt_table_data" class="table table-row-dashed table-row-gray-300 gy-7">
+                            <div class="py-5 table-responsive">
+                                <table id="kt_table_data"
+                                    class="table table-striped table-rounded border border-gray-300 table-row-bordered table-row-gray-300">
                                     <thead class="text-center">
-                                        <tr class="fw-bolder fs-6 text-gray-800">
-                                            <th>No</th>
-                                            <th>NIM</th>
-                                            <th>Nama</th>
-                                            <th>Total Semester</th>
-                                            <th>Total IPK</th>
-                                            <th>Ket</th>
+                                        <tr id="tThead" class="fw-bolder fs-6 text-gray-800">
+
                                         </tr>
                                     </thead>
                                     <tbody>
                                     </tbody>
                                 </table>
+                                <div id="data-kosong" class="fs-4 text-gray-400 text-center">Data masih kosong</div>
                             </div>
                         </div>
                     </div>
@@ -83,71 +80,82 @@
         })
 
         $(document).ready(function() {
-
             $(document).on('submit', '.form-data', function(e) {
-                e.preventDefault(); // Prevent the default form submission
+                e.preventDefault(); // Menghentikan pengiriman form standar
 
-                // Get the value from the input field
-                let crossValidationValue = $('#inputcrossvalidation').val();
+                // Ambil nilai dari input field
+                let informationGain = $('#informationgain').val();
 
-                // Validasi apakah input tidak kosong
-                if (crossValidationValue === '') {
-                    alert('The cross validation field is required.');
+                // Validasi input untuk memastikan tidak kosong
+                if (informationGain === '') {
+                    alert('Information Gain tidak boleh kosong.');
                     return;
                 }
 
-                let columns = [{
-                        data: null,
-                        render: function(data, type, row, meta) {
-                            return meta.row + 1;
+                $('#data-kosong').empty();
+                // Kosongkan elemen thead
+                $('#tThead').empty();
+
+                // Lakukan permintaan AJAX untuk mendapatkan label_head
+                $.ajax({
+                    url: `/prediksi/${informationGain}`,
+                    method: 'GET',
+                    success: function(res) {
+                        if (res.data.length > 0) {
+                            // Ambil nama kolom dari objek pertama (asumsi objek pertama memiliki semua kolom yang sama)
+                            let label_head = Object.keys(res.data[0]);
+
+                            // Buat elemen No dengan atribut class yang sesuai
+                            let noColumn = '<th class="fw-bolder fs-6 text-gray-800">No</th>';
+
+                            // Buat elemen thead
+                            let html = noColumn;
+                            label_head.forEach(key => {
+                                html +=
+                                    `<th class="fw-bolder fs-6 text-gray-800">${key}</th>`;
+                            });
+
+                            let tr = `<tr>${html}</tr>`;
+                            // Tambahkan elemen thead yang baru
+                            $('thead').html(tr);
+
+                            // Setelah label_head diinisialisasi, buat kolom
+                            let columns = [{
+                                    data: null,
+                                    render: function(data, type, row, meta) {
+                                        return meta.row + 1;
+                                    },
+                                },
+                                ...label_head.map((key) => {
+                                    return {
+                                        data: key,
+                                    };
+                                })
+                            ];
+
+                            // Panggil fungsi untuk menginisialisasi datatable
+                            control.initDatatable(`/prediksi/${informationGain}`, columns);
                         }
                     },
-                    {
-                        data: 'nim'
-                    },
-                    {
-                        data: 'nama'
-                    },
-                    {
-                        data: null,
-                        render: function(data, type, row, meta) {
-                            return row.semester + ' Semester';
-                        }
-                    },
-                    {
-                        data: 'ipk',
-                        render: function(data, type, row, meta) {
-                            // Format IPK to 2 decimal places
-                            if (type === 'display') {
-                                return parseFloat(data).toFixed(2);
-                            }
-                            return data;
-                        }
-                    },
-                    {
-                        data: 'keterangan'
-                    },
-                ];
+                    error: function(error) {
+                        console.error(error);
+                    }
+                });
 
-                control.initDatatable(`/prediksi/${crossValidationValue}`, columns);
 
-                // // Perform AJAX request for predictDOStatus
-                // $.ajax({
-                //     url: `/akurasi/${crossValidationValue}`, // Sesuaikan URL sesuai kebutuhan Anda
-                //     method: 'GET', // Tentukan metode HTTP
-                //     success: function(response) {
-                //         // Response dari fungsi predictDOStatus dapat diolah di sini
-                //         let data = parseFloat(response.data).toFixed(2)
-                //         // Panggil fungsi untuk mengambil akurasi setelah mendapatkan respons dari predictDOStatus
-                //         $('#inputakurasi').val(data + ' %')
-                //     },
-                //     error: function(error) {
-                //         console.error(error);
-                //     }
-                // });
-
+                // Lakukan permintaan AJAX untuk memperoleh akurasi
+                $.ajax({
+                    url: `/akurasi/${informationGain}`,
+                    method: 'GET',
+                    success: function(response) {
+                        let data = parseFloat(response.data).toFixed(2);
+                        $('#inputakurasi').val(data + ' %');
+                    },
+                    error: function(error) {
+                        console.error(error);
+                    }
+                });
             });
-
         });
     </script>
 @endsection

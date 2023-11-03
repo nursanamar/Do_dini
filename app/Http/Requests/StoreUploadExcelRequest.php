@@ -22,7 +22,7 @@ class StoreUploadExcelRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'file_excel' => 'required|mimes:xls,xlsx'
+            'file_excel' => 'nullable|mimes:xls,xlsx'
         ];
     }
 }

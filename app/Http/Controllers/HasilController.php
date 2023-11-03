@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\FileUpload;
 use App\Models\Hasil;
 use App\Models\UploadExcel;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Phpml\Classification\NaiveBayes;
@@ -12,6 +14,7 @@ use Phpml\CrossValidation\StratifiedRandomSplit;
 use Phpml\Dataset\ArrayDataset;
 use Phpml\Metric\Accuracy;
 use Phpml\FeatureExtraction\InformationGain;
+use Phpml\CrossValidation\Split;
 
 class HasilController extends BaseController
 {
@@ -59,147 +62,132 @@ class HasilController extends BaseController
     public function predictDOStatus($params)
     {
         // Ambil data dari database menggunakan model UploadExcel
-        $dataset = [
-            ['outlook' => 'sunny', 'temperature' => 'hot', 'humidity' => 'high', 'windy' => false, 'play' => 'no'],
-            ['outlook' => 'sunny', 'temperature' => 'hot', 'humidity' => 'high', 'windy' => true, 'play' => 'no'],
-            // ... data lainnya ...
-        ];
+        $data = UploadExcel::all()->toArray();
 
-        $labelAttribute = 'play'; // Atur atribut label yang sesuai
+        $labelAttribute = 'class_status'; // Atur atribut label yang sesuai
 
         $informationGains = [];
 
         // Menghitung Information Gain untuk setiap atribut
-        $attributes = array_keys($dataset[0]);
-        unset($attributes[array_search($labelAttribute, $attributes)]); // Hapus atribut label dari array atribut
+        $attributes = array_keys($data[0]); // Mengambil atribut dari model pertama
+        $labelAttributeIndex = array_search($labelAttribute, $attributes);
+
+        if ($labelAttributeIndex !== false) {
+            unset($attributes[$labelAttributeIndex]); // Hapus atribut label dari array atribut
+        }
+
+        // Mengabaikan atribut 'id' dan 'uuid'
+        $ignoredAttributes = ['id', 'uuid', 'created_at', 'updated_at'];
+        $attributes = array_diff($attributes, $ignoredAttributes);
+
         foreach ($attributes as $attribute) {
-            $informationGain = $this->informationGain($dataset, $attribute, $labelAttribute);
+            $informationGain = $this->informationGain($data, $attribute, $labelAttribute);
             $informationGains[$attribute] = $informationGain;
         }
 
         // Atribut dengan Information Gain tertinggi
         arsort($informationGains);
-        $bestAttribute = key($informationGains);
 
-        dd($informationGains);
+        // Mengambil N atribut teratas sesuai dengan nilai $params
+        $topNInformationGains = array_slice($informationGains, 0, $params);
 
-        return $this->sendResponse($bestAttribute, 'Cross-validation completed');
+        // Ambil atribut dari N teratas
+        $selectedAttributes = array_keys($topNInformationGains);
+
+        $samples = [];
+
+        foreach ($data as $row) {
+            $sample = [];
+            foreach ($selectedAttributes as $attribute) {
+                // Gantilah nilai null dengan tanda strip "-"
+                $sample[$attribute] = $row[$attribute] ?? '-';
+            }
+
+            $sample['label'] = $row[$labelAttribute];
+
+            $samples[] = $sample;
+        }
+
+        return $this->sendResponse($samples, 'Cross-validation completed');
     }
 
+    public function getAcuracy($params)
+    {
+        // Ambil data dari database menggunakan model UploadExcel
+        $data = UploadExcel::all()->toArray();
 
-    // public function getAcuracy($params)
-    // {
-    //     // Inisialisasi model Naive Bayes
-    //     $naiveBayes = new NaiveBayes();
+        $labelAttribute = 'class_status'; // Atur atribut label yang sesuai
 
-    //     // Ambil data dari database menggunakan model UploadExcel
-    //     $data = UploadExcel::all();
+        $informationGains = [];
 
-    //     $nimToData = []; // Array untuk mengelompokkan data berdasarkan NIM
+        // Menghitung Information Gain untuk setiap atribut
+        $attributes = array_keys($data[0]); // Mengambil atribut dari model pertama
+        $labelAttributeIndex = array_search($labelAttribute, $attributes);
 
-    //     // Loop melalui data dan kelompokkan berdasarkan NIM
-    //     foreach ($data as $row) {
-    //         $nim = $row->nim; // NIM
-    //         $ipk = $row->ipk; // IPK
-    //         $semester = $row->semester; // Semester
+        if ($labelAttributeIndex !== false) {
+            unset($attributes[$labelAttributeIndex]); // Hapus atribut label dari array atribut
+        }
 
-    //         if (!isset($nimToData[$nim])) {
-    //             // Inisialisasi data NIM jika belum ada
-    //             $nimToData[$nim] = [
-    //                 'nim' => $nim,
-    //                 'total_ipk' => 0,
-    //                 'total_semester' => 0,
-    //                 'data' => [],
-    //             ];
-    //         }
+        // Mengabaikan atribut 'id' dan 'uuid'
+        $ignoredAttributes = ['id', 'uuid', 'created_at', 'updated_at'];
+        $attributes = array_diff($attributes, $ignoredAttributes);
 
-    //         // Tambahkan data IPK dan Semester ke dalam data NIM yang sesuai
-    //         $nimToData[$nim]['total_ipk'] += $ipk;
-    //         $nimToData[$nim]['total_semester']++;
-    //         $nimToData[$nim]['data'][] = [
-    //             'nama' => $row->nama, // Nama
-    //             'ipk' => $ipk, // IPK
-    //             'semester' => $semester, // Semester
-    //         ];
-    //     }
+        foreach ($attributes as $attribute) {
+            $informationGain = $this->informationGain($data, $attribute, $labelAttribute);
+            $informationGains[$attribute] = $informationGain;
+        }
 
-    //     $samples = [];
-    //     $labels = [];
-    //     $predictedData = []; // Array untuk menyimpan data yang terdeteksi DO
+        // Atribut dengan Information Gain tertinggi
+        arsort($informationGains);
 
-    //     // Loop melalui data NIM yang sudah dikelompokkan
-    //     foreach ($nimToData as $nimData) {
-    //         $nim = $nimData['nim'];
-    //         $totalIpk = $nimData['total_ipk'];
-    //         $totalSemester = $nimData['total_semester'];
+        // Mengambil N atribut teratas sesuai dengan nilai $params
+        $topNInformationGains = array_slice($informationGains, 0, $params);
 
-    //         // Hitung rata-rata IPK berdasarkan jumlah semester
-    //         $averageIpk = $totalIpk / $totalSemester;
+        // Ambil atribut dari N teratas
+        $selectedAttributes = array_keys($topNInformationGains);
 
-    //         $label = ($averageIpk < 2) ? 'DO' : 'Tidak DO';
+        $samples = [];
+        $labels = [];
 
-    //         // Tambahkan data ke samples dan labels
-    //         foreach ($nimData['data'] as $data) {
-    //             $samples[] = [$nim, $data['nama'], $totalSemester, $averageIpk]; // Tambahkan NIM, Nama, dan Semester ke samples
-    //             $labels[] = $label;
-    //         }
-    //     }
+        foreach ($data as $row) {
+            $sample = [];
+            foreach ($selectedAttributes as $attribute) {
+                // Gantilah nilai null dengan tanda strip "-"
+                $sample[] = $attribute;
+            }
+            $samples[] = $sample;
+            $labels[] = $row[$labelAttribute];
+        }
 
-    //     // Buat dataset
-    //     $dataset = new ArrayDataset($samples, $labels);
+        $dataset = new ArrayDataset($samples, $labels);
 
-    //     $crossValidationValue = $params;
-    //     // Mengonversi ke float
-    //     $percentage = floatval($crossValidationValue) / 100.0;
+        // Lakukan pemisahan data dengan RandomSplit
+        $split = new StratifiedRandomSplit($dataset, 0.5);
 
-    //     // Verifikasi bahwa nilai berada dalam rentang yang valid
-    //     if ($percentage <= 0.0 || $percentage >= 1.0) {
-    //         // Nilai tidak valid, berikan respons atau tindakan yang sesuai
-    //         return $this->sendError('Invalid cross-validation percentage');
-    //     }
+        $accuracies = [];
 
-    //     // Lanjutkan dengan menggunakan $percentage seperti biasa
-    //     $split = new StratifiedRandomSplit($dataset, $percentage);
+        foreach ($split->getTrainSamples() as $trainIndexes) {
+            $trainSamples = $dataset->getSamples($trainIndexes);
+            $trainLabels = $dataset->getTargets($trainIndexes);
 
-    //     // dd($split);
-    //     $accuracies = [];
+            // Gunakan data uji yang tidak pernah digunakan dalam pelatihan
+            $testIndexes = array_diff(range(0, count($samples) - 1), $trainIndexes);
+            $testSamples = $dataset->getSamples($testIndexes);
+            $testLabels = $dataset->getTargets($testIndexes);
 
-    //     foreach ($split->getTrainSamples() as $trainIndexes) {
-    //         $trainSamples = $dataset->getSamples($trainIndexes);
-    //         $trainLabels = $dataset->getTargets($trainIndexes);
+            $naiveBayes = new NaiveBayes();
+            $naiveBayes->train($trainSamples, $trainLabels);
 
-    //         // Gunakan data uji yang tidak pernah digunakan dalam pelatihan
-    //         $testIndexes = array_diff(range(0, count($samples) - 1), $trainIndexes);
-    //         $testSamples = $dataset->getSamples($testIndexes);
-    //         $testLabels = $dataset->getTargets($testIndexes);
+            // Lakukan prediksi pada data uji
+            $predictedLabels = $naiveBayes->predict($testSamples);
 
-    //         // Latih model pada data pelatihan
-    //         $naiveBayes->train($trainSamples, $trainLabels);
+            // Hitung akurasi
+            $accuracy = Accuracy::score($testLabels, $predictedLabels);
+            $accuracies[] = $accuracy;
+        }
 
-    //         // Lakukan prediksi pada data uji
-    //         $predictedLabels = $naiveBayes->predict($testSamples);
+        $meanAccuracy = (array_sum($accuracies) / count($accuracies)) * 100;
 
-    //         // Loop melalui hasil prediksi
-    //         foreach ($testIndexes as $index) {
-    //             // Data ini terdeteksi sebagai DO, simpan data ke dalam array predictedData
-    //             // if ($predictedLabels[$index] === 'DO') {
-    //             $predictedData[] = [
-    //                 'nim' => $samples[$index][0], // NIM dari data terdeteksi DO
-    //                 'nama' => $samples[$index][1], // Nama dari data terdeteksi DO
-    //                 'semester' => $samples[$index][2], // Semester dari data terdeteksi DO
-    //                 'ipk' => $samples[$index][3], // IPK dari data terdeteksi DO
-    //                 'label' => $labels[$index] // Label DO
-    //             ];
-    //             // }
-    //         }
-
-    //         // Hitung akurasi
-    //         $accuracy = Accuracy::score($testLabels, $predictedLabels);
-    //         $accuracies[] = $accuracy;
-    //     }
-
-    //     $meanAccuracy = (array_sum($accuracies) / count($accuracies)) * 100;
-
-    //     return $this->sendResponse($meanAccuracy, 'Accuracy processed successfully');
-    // }
+        return $this->sendResponse($meanAccuracy, 'Accuracy processed successfully');
+    }
 }

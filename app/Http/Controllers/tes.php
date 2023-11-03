@@ -81,18 +81,8 @@ class HasilController extends BaseController
         // Buat dataset
         $dataset = new ArrayDataset($samples, $labels);
 
-        $crossValidationValue = $params;
-        // Mengonversi ke float
-        $percentage = floatval($crossValidationValue) / 100.0;
-
-        // Verifikasi bahwa nilai berada dalam rentang yang valid
-        if ($percentage <= 0.0 || $percentage >= 1.0) {
-            // Nilai tidak valid, berikan respons atau tindakan yang sesuai
-            return $this->sendError('Invalid cross-validation percentage');
-        }
-
         // Lanjutkan dengan menggunakan $percentage seperti biasa
-        $split = new StratifiedRandomSplit($dataset, $percentage);
+        $split = new StratifiedRandomSplit($dataset, 0.5);
 
         // dd($split);
         $accuracies = [];
@@ -277,3 +267,28 @@ class HasilController extends BaseController
         return $this->sendResponse($meanAccuracy, 'Accuracy processed successfully');
     }
 }
+
+
+// Latih model Naive Bayes pada data pelatihan
+$naiveBayes = new NaiveBayes();
+$naiveBayes->train($trainSamples, $trainLabels);
+
+// Lakukan prediksi pada data uji
+$predictedLabels = $naiveBayes->predict($testSamples);
+
+// Hitung akurasi
+$accuracy = Accuracy::score($testLabels, $predictedLabels);
+$accuracies[] = $accuracy;
+
+// Hitung rata-rata akurasi dari semua iterasi
+$meanAccuracy = array_sum($accuracies) / count($accuracies);
+
+// Sekarang Anda dapat menggunakan $naiveBayes untuk melakukan prediksi pada data baru:
+$newData = [...]; // Gantilah dengan data yang ingin Anda prediksi
+$predictedLabel = $naiveBayes->predict($newData);
+
+// $predictedLabel akan berisi prediksi kelas untuk data baru.
+
+// Selanjutnya, Anda dapat menggunakan model $naiveBayes untuk membuat prediksi kelas pada data lain.
+
+// Untuk hasil akhir, Anda dapat mengembalikan akurasi atau prediksi sesuai kebutuhan Anda dalam metodenya.
