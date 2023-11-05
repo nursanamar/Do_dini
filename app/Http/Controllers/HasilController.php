@@ -108,7 +108,7 @@ class HasilController extends BaseController
             $samples[] = $sample;
         }
 
-        return $this->sendResponse($samples, 'Cross-validation completed');
+        return $this->sendResponse($samples, 'Information Gain completed');
     }
 
     public function getAcuracy($params)

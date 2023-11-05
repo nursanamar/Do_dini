@@ -29,8 +29,7 @@
                         style="{{ $path[0] == 'fileupload' ? 'color: #F4BE2A' : 'color: #FFFFFF' }}">File
                         Upload</span>
                 </a>
-                <a class="menu-link  {{ $path[0] == 'hasil' ? 'active' : '' }}"
-                    href="{{ route('hasil.index') }}">
+                <a class="menu-link  {{ $path[0] == 'hasil' ? 'active' : '' }}" href="{{ route('hasil.index') }}">
                     <span class="menu-icon">
                         <!--begin::Svg Icon | path: icons/duotune/general/gen025.svg-->
                         <span class="svg-icon svg-icon-2">
@@ -41,6 +40,19 @@
                     </span>
                     <span class="menu-title"
                         style="{{ $path[0] == 'hasil' ? 'color: #F4BE2A' : 'color: #FFFFFF' }}">Hasil</span>
+                </a>
+                <a class="menu-link  {{ $path[0] == 'implementasi' ? 'active' : '' }}"
+                    href="{{ route('implementasi.index') }}">
+                    <span class="menu-icon">
+                        <!--begin::Svg Icon | path: icons/duotune/general/gen025.svg-->
+                        <span class="svg-icon svg-icon-2">
+                            <img src="{{ $path[0] == 'implementasi' ? url('admin/assets/media/icons/aside/dashboardact.svg') : url('/admin/assets/media/icons/aside/dashboarddef.svg') }}"
+                                alt="">
+                        </span>
+                        <!--end::Svg Icon-->
+                    </span>
+                    <span class="menu-title"
+                        style="{{ $path[0] == 'implementasi' ? 'color: #F4BE2A' : 'color: #FFFFFF' }}">Implementasi</span>
                 </a>
             </div>
 

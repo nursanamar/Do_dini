@@ -121,6 +121,7 @@ class Control {
                 console.log(response);
                 $(".text-danger").html("");
                 if (response.success) { // You can directly check the boolean value
+                    $('#button-result').prop('disabled', false);
                     swal.fire({
                         text: `${module} berhasil di ${role_data}`,
                         icon: "success",
@@ -263,7 +264,7 @@ class Control {
         });
     }
 
-    async initDatatable1(url, columns, columnDefs, dataSrc, nomor) {
+    async initDatatable1(url, columns, columnDefs) {
         this.table.DataTable().clear().destroy();
 
         // await this.table.dataTable().clear().draw();
@@ -273,29 +274,17 @@ class Control {
         this.table.DataTable({
             responsive: true,
             pageLength: 10,
-            order: [[0, "desc"]],
+            order: [[0, "asc"]],
             processing: true,
             // serverSide: true,
             ajax: url,
             columns: columns,
-            columnDefs: columnDefs,
-            rowGroup: {
-                dataSrc: dataSrc, // Ganti 'jenis_fasilitas_kesehatan' dengan nama kolom yang ingin digunakan sebagai grup
-                startRender: function (rows, group) {
-                    return $('<tr/>')
-                        .append('<td colspan="10"><span style="font-weight: bold; color: #FFFFFF; background-color: #1AB75E; padding: 2px 12px; font-size: 12px; border-radius: 8px; text-transform: uppercase;">' + group + '</span></td>') // Modify the colspan value based on the number of columns in your table
-                        .attr('style', 'background-color: #FFFFFF;'); // Apply custom styling to the row group header
-                }
-            },
+            // columnDefs: columnDefs,
             rowCallback: function (row, data, index) {
                 var api = this.api();
                 var startIndex = api.context[0]._iDisplayStart;
                 var rowIndex = startIndex + index + 1;
-                if (nomor == 1) {
-                    $('td', row).eq(0).html(rowIndex);
-                } else {
-                    ''
-                }
+                $('td', row).eq(0).html(rowIndex);
             },
         });
     }
