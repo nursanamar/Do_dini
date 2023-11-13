@@ -15,6 +15,12 @@
                                         <input type="number" class="form-control" id="informationgain">
                                     </div>
                                 </div>
+                                <div class="fs-4 text row mb-3">
+                                    <label for="crosValidation" class="col-sm-2 col-form-label">Cross Validation</label>
+                                    <div class="col-sm-2">
+                                        <input type="number" class="form-control" id="crosValidation">
+                                    </div>
+                                </div>
                                 <div class="d-flex my-5">
                                     <button class="btn btn-primary btn-sm " id="button-side-form"></i> Uji Data</button>
                                 </div>
@@ -85,10 +91,17 @@
 
                 // Ambil nilai dari input field
                 let informationGain = $('#informationgain').val();
+                let crosValidation = $('#crosValidation').val();
 
                 // Validasi input untuk memastikan tidak kosong
                 if (informationGain === '') {
                     alert('Information Gain tidak boleh kosong.');
+                    return;
+                }
+
+                // Validasi input untuk memastikan tidak kosong
+                if (crosValidation === '') {
+                    alert('Cross Validation tidak boleh kosong.');
                     return;
                 }
 
@@ -144,10 +157,21 @@
 
 
                 // Lakukan permintaan AJAX untuk memperoleh akurasi
+                $.ajaxSetup({
+                    headers: {
+                        "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content"),
+                    },
+                });
+
                 $.ajax({
-                    url: `/akurasi/${informationGain}`,
-                    method: 'GET',
+                    url: '/akurasi',
+                    method: 'POST',
+                    data: {
+                        informationGain: informationGain,
+                        crossValidation: crosValidation
+                    },
                     success: function(response) {
+                        console.log(response);
                         let data = parseFloat(response.data).toFixed(2);
                         $('#inputakurasi').val(data + ' %');
                     },
@@ -155,6 +179,7 @@
                         console.error(error);
                     }
                 });
+
             });
         });
     </script>

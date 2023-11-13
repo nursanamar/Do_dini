@@ -58,7 +58,6 @@ class HasilController extends BaseController
         return $totalEntropy - $weightedEntropy;
     }
 
-
     public function predictDOStatus($params)
     {
         // Ambil data dari database menggunakan model UploadExcel
@@ -80,9 +79,23 @@ class HasilController extends BaseController
         $ignoredAttributes = ['id', 'uuid', 'created_at', 'updated_at'];
         $attributes = array_diff($attributes, $ignoredAttributes);
 
+        // Tentukan batas jumlah nilai null yang dapat diterima
+        $nullThreshold = 0.2; // 20%
+
         foreach ($attributes as $attribute) {
-            $informationGain = $this->informationGain($data, $attribute, $labelAttribute);
-            $informationGains[$attribute] = $informationGain;
+            // Hitung jumlah nilai null dalam atribut
+            $nullCount = 0;
+            foreach ($data as $row) {
+                if ($row[$attribute] === null || $row[$attribute] === '') {
+                    $nullCount++;
+                }
+            }
+
+            // Hitung Information Gain hanya jika jumlah nilai null tidak melebihi batas
+            if ($nullCount <= count($data) * $nullThreshold) {
+                $informationGain = $this->informationGain($data, $attribute, $labelAttribute);
+                $informationGains[$attribute] = $informationGain;
+            }
         }
 
         // Atribut dengan Information Gain tertinggi
@@ -111,7 +124,7 @@ class HasilController extends BaseController
         return $this->sendResponse($samples, 'Information Gain completed');
     }
 
-    public function getAcuracy($params)
+    public function getAcuracy(Request $request)
     {
         // Ambil data dari database menggunakan model UploadExcel
         $data = UploadExcel::all()->toArray();
@@ -132,16 +145,30 @@ class HasilController extends BaseController
         $ignoredAttributes = ['id', 'uuid', 'created_at', 'updated_at'];
         $attributes = array_diff($attributes, $ignoredAttributes);
 
+        // Tentukan batas jumlah nilai null yang dapat diterima
+        $nullThreshold = 0.2; // 80%
+
         foreach ($attributes as $attribute) {
-            $informationGain = $this->informationGain($data, $attribute, $labelAttribute);
-            $informationGains[$attribute] = $informationGain;
+            // Hitung jumlah nilai null dalam atribut
+            $nullCount = 0;
+            foreach ($data as $row) {
+                if ($row[$attribute] === null || $row[$attribute] === '') {
+                    $nullCount++;
+                }
+            }
+
+            // Hitung Information Gain hanya jika jumlah nilai null tidak melebihi batas
+            if ($nullCount <= count($data) * $nullThreshold) {
+                $informationGain = $this->informationGain($data, $attribute, $labelAttribute);
+                $informationGains[$attribute] = $informationGain;
+            }
         }
 
         // Atribut dengan Information Gain tertinggi
         arsort($informationGains);
 
         // Mengambil N atribut teratas sesuai dengan nilai $params
-        $topNInformationGains = array_slice($informationGains, 0, $params);
+        $topNInformationGains = array_slice($informationGains, 0, $request->informationGain);
 
         // Ambil atribut dari N teratas
         $selectedAttributes = array_keys($topNInformationGains);
@@ -161,8 +188,18 @@ class HasilController extends BaseController
 
         $dataset = new ArrayDataset($samples, $labels);
 
-        // Lakukan pemisahan data dengan RandomSplit
-        $split = new StratifiedRandomSplit($dataset, 0.5);
+        $crossValidationValue = $request->crossValidation;
+        // Mengonversi ke float
+        $percentage = floatval($crossValidationValue) / 100.0;
+
+        // Verifikasi bahwa nilai berada dalam rentang yang valid
+        if ($percentage <= 0.0 || $percentage >= 1.0) {
+            // Nilai tidak valid, berikan respons atau tindakan yang sesuai
+            return $this->sendError('Invalid cross-validation percentage');
+        }
+
+        // Lanjutkan dengan menggunakan $percentage seperti biasa
+        $split = new StratifiedRandomSplit($dataset, $percentage);
 
         $accuracies = [];
 

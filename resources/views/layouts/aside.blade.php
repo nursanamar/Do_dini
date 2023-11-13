@@ -39,7 +39,7 @@
                         <!--end::Svg Icon-->
                     </span>
                     <span class="menu-title"
-                        style="{{ $path[0] == 'hasil' ? 'color: #F4BE2A' : 'color: #FFFFFF' }}">Hasil</span>
+                        style="{{ $path[0] == 'hasil' ? 'color: #F4BE2A' : 'color: #FFFFFF' }}">Training Data</span>
                 </a>
                 <a class="menu-link  {{ $path[0] == 'implementasi' ? 'active' : '' }}"
                     href="{{ route('implementasi.index') }}">

@@ -247,7 +247,7 @@ class Control {
         await this.table.dataTable().fnDraw();
         await this.table.dataTable().fnDestroy();
         this.table.DataTable({
-            responsive: true,
+            // responsive: true,
             pageLength: 10,
             order: [[0, "asc"]],
             processing: true,
