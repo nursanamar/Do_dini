@@ -16,7 +16,7 @@
                                     </div>
                                 </div>
                                 <div class="fs-4 text row mb-3">
-                                    <label for="crosValidation" class="col-sm-2 col-form-label">Cross Validation</label>
+                                    <label for="crosValidation" class="col-sm-2 col-form-label">Training Data (%)</label>
                                     <div class="col-sm-2">
                                         <input type="number" class="form-control" id="crosValidation">
                                     </div>
@@ -111,7 +111,7 @@
 
                 // Lakukan permintaan AJAX untuk mendapatkan label_head
                 $.ajax({
-                    url: `/prediksi/${informationGain}`,
+                    url: `/prediksi/${informationGain}/${crosValidation}`,
                     method: 'GET',
                     success: function(res) {
                         if (res.data.length > 0) {
@@ -147,7 +147,8 @@
                             ];
 
                             // Panggil fungsi untuk menginisialisasi datatable
-                            control.initDatatable(`/prediksi/${informationGain}`, columns);
+                            control.initDatatable(
+                                `/prediksi/${informationGain}/${crosValidation}`, columns);
                         }
                     },
                     error: function(error) {

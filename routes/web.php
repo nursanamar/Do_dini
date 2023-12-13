@@ -24,7 +24,7 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
     Route::delete('/hapus', 'FileUploadController@delete')->name('fileupload.delete');
 
     Route::get('/hasil', 'HasilController@index')->name('hasil.index');
-    Route::get('/prediksi/{params}', 'HasilController@predictDOStatus')->name('hasil.prediksi');
+    Route::get('/prediksi/{informationGain}/{crosValidation}', 'HasilController@predictDOStatus')->name('hasil.prediksi');
     Route::post('/akurasi', 'HasilController@getAcuracy')->name('hasil.acuracy');
     // Route::get('/get-prediksi', 'HasilController@getPredictionDO')->name('hasil.prediksi_get');
 

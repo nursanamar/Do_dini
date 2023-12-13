@@ -182,7 +182,49 @@ class ImplementasiController extends BaseController
                 $newData[$key] = $rows;
             }
         }
-        return $this->sendResponse($newData, 'Accuracy processed successfully');
+
+        // ////////////////////////////////////////////////////////////////////////////////
+
+        $samples_training = [];
+        $labels_training = [];
+
+        foreach ($newData as $row) {
+            $sample = [];
+            foreach ($columnsToUse as $attribute) {
+                // Gantilah nilai null dengan tanda strip "-"
+                $sample[] = $attribute;
+            }
+            $samples_training[] = $sample;
+            $labels_training[] = $row['predicted_label'];
+        }
+
+        $dataset_training = new ArrayDataset($samples_training, $labels_training);
+
+        // Lanjutkan dengan menggunakan $percentage seperti biasa
+        $split_training = new StratifiedRandomSplit($dataset_training, 0.8);
+
+        $sample_data = [];
+
+        foreach ($split_training->getTrainSamples() as $attribute_sample) {
+            $sample_test = [];
+
+            foreach ($attribute_sample as $attribute) {
+                foreach ($data as $row) {
+                    // Pastikan atribut dan indeks data tersedia sebelum mencoba mengakses
+                    if (isset($row[$attribute])) {
+                        $sample_test[$attribute] = $row[$attribute];
+                    } else {
+                        // Gantilah nilai null dengan tanda strip "-"
+                        $sample_test[$attribute] = '-';
+                    }
+                }
+            }
+
+            $sample_test['predicted_label'] = $row[$labelAttribute];
+            $sample_data[] = $sample_test;
+        }
+
+        return $this->sendResponse($sample_data, 'Accuracy processed successfully');
     }
 
     public function delete()
