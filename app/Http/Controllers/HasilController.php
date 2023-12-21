@@ -60,67 +60,6 @@ class HasilController extends BaseController
 
     public function predictDOStatus($informationGain_params, $crosValidation_params)
     {
-        // // Ambil data dari database menggunakan model UploadExcel
-        // $data = UploadExcel::all()->toArray();
-
-        // $labelAttribute = 'class_status'; // Atur atribut label yang sesuai
-
-        // $informationGains = [];
-
-        // // Menghitung Information Gain untuk setiap atribut
-        // $attributes = array_keys($data[0]); // Mengambil atribut dari model pertama
-        // $labelAttributeIndex = array_search($labelAttribute, $attributes);
-
-        // if ($labelAttributeIndex !== false) {
-        //     unset($attributes[$labelAttributeIndex]); // Hapus atribut label dari array atribut
-        // }
-
-        // // Mengabaikan atribut 'id' dan 'uuid'
-        // $ignoredAttributes = ['id', 'uuid', 'created_at', 'updated_at'];
-        // $attributes = array_diff($attributes, $ignoredAttributes);
-
-        // // Tentukan batas jumlah nilai null yang dapat diterima
-        // $nullThreshold = 0.2; // 20%
-
-        // foreach ($attributes as $attribute) {
-        //     // Hitung jumlah nilai null dalam atribut
-        //     $nullCount = 0;
-        //     foreach ($data as $row) {
-        //         if ($row[$attribute] === null || $row[$attribute] === '') {
-        //             $nullCount++;
-        //         }
-        //     }
-
-        //     // Hitung Information Gain hanya jika jumlah nilai null tidak melebihi batas
-        //     if ($nullCount <= count($data) * $nullThreshold) {
-        //         $informationGain = $this->informationGain($data, $attribute, $labelAttribute);
-        //         $informationGains[$attribute] = $informationGain;
-        //     }
-        // }
-
-        // // Atribut dengan Information Gain tertinggi
-        // arsort($informationGains);
-
-        // // Mengambil N atribut teratas sesuai dengan nilai $params
-        // $topNInformationGains = array_slice($informationGains, 0, $informationGain_params);
-
-        // // Ambil atribut dari N teratas
-        // $selectedAttributes = array_keys($topNInformationGains);
-
-        // $samples = [];
-
-        // foreach ($data as $row) {
-        //     $sample = [];
-        //     foreach ($selectedAttributes as $attribute) {
-        //         // Gantilah nilai null dengan tanda strip "-"
-        //         $sample[$attribute] = $row[$attribute] ?? '-';
-        //     }
-
-        //     $sample['label'] = $row[$labelAttribute];
-
-        //     $samples[] = $sample;
-        // }
-
         // Ambil data dari database menggunakan model UploadExcel
         $data = UploadExcel::all()->toArray();
 
@@ -198,46 +137,35 @@ class HasilController extends BaseController
 
         $sample_data = [];
 
-        foreach ($split->getTestSamples() as $attribute_sample) {
-            $sample_test = [];
+        // Konversi $split->getTestSamples() ke array asosiatif
+        $attribute_samples = [];
+        foreach ($split->getTestSamples() as $attribute) {
+            $attribute_samples[] = $attribute;
+        }
 
-            foreach ($attribute_sample as $attribute) {
-                foreach ($data as $row) {
-                    // Pastikan atribut dan indeks data tersedia sebelum mencoba mengakses
-                    if (isset($row[$attribute])) {
-                        $sample_test[$attribute] = $row[$attribute];
-                    } else {
-                        // Gantilah nilai null dengan tanda strip "-"
-                        $sample_test[$attribute] = '-';
-                    }
+        foreach ($attribute_samples as $attribute_data) {
+            // Ambil satu baris data terkait dengan kategori
+            $row_sample = array_shift($data);
+
+            $samples_data = [];
+
+            foreach ($attribute_data as $attribute) {
+                // Pastikan atribut dan indeks data tersedia sebelum mencoba mengakses
+                if (isset($row_sample[$attribute])) {
+                    // Gantilah nilai null dengan tanda strip "-"
+                    $samples_data[$attribute] = $row_sample[$attribute];
+                } else {
+                    $samples_data[$attribute] = '-';
                 }
             }
 
-            $sample_test['label'] = $row[$labelAttribute];
-            $sample_data[] = $sample_test;
+            $samples_data['label'] = $row_sample[$labelAttribute];
+            $sample_data[] = $samples_data;
         }
-
-        // $accuracies = [];
-
-        // foreach ($split->getTrainSamples() as $trainIndexes) {
-        //     $trainSamples = $dataset->getSamples($trainIndexes);
-        //     $trainLabels = $dataset->getTargets($trainIndexes);
-
-        //     // Gunakan data uji yang tidak pernah digunakan dalam pelatihan
-        //     $testIndexes = array_diff(range(0, count($samples) - 1), $trainIndexes);
-        //     $testSamples = $dataset->getSamples($testIndexes);
-        //     dd($testSamples);
-        //     $testLabels = $dataset->getTargets($testIndexes);
-
-        //     $naiveBayes = new NaiveBayes();
-        //     $naiveBayes->train($trainSamples, $trainLabels);
-
-        //     // Lakukan prediksi pada data uji
-        //     $predictedLabels = $naiveBayes->predict($testSamples);
-        // }
 
         return $this->sendResponse($sample_data, 'Information Gain completed');
     }
+
 
     public function getAcuracy(Request $request)
     {

@@ -63,7 +63,7 @@ class ImplementasiController extends BaseController
     public function predict()
     {
         // Ambil data dari database menggunakan model UploadExcel
-        $data = UploadExcel::all();
+        $data = UploadExcel::all()->toArray();
 
         $labelAttribute = 'class_status'; // Atur atribut label yang sesuai
 
@@ -205,23 +205,48 @@ class ImplementasiController extends BaseController
 
         $sample_data = [];
 
-        foreach ($split_training->getTrainSamples() as $attribute_sample) {
-            $sample_test = [];
+        // foreach ($split_training->getTrainSamples() as $attribute_sample) {
+        //     $sample_test = [];
 
-            foreach ($attribute_sample as $attribute) {
-                foreach ($data as $row) {
-                    // Pastikan atribut dan indeks data tersedia sebelum mencoba mengakses
-                    if (isset($row[$attribute])) {
-                        $sample_test[$attribute] = $row[$attribute];
-                    } else {
-                        // Gantilah nilai null dengan tanda strip "-"
-                        $sample_test[$attribute] = '-';
-                    }
+        //     foreach ($attribute_sample as $attribute) {
+        //         foreach ($data as $row) {
+        //             // Pastikan atribut dan indeks data tersedia sebelum mencoba mengakses
+        //             if (isset($row[$attribute])) {
+        //                 $sample_test[$attribute] = $row[$attribute];
+        //             } else {
+        //                 // Gantilah nilai null dengan tanda strip "-"
+        //                 $sample_test[$attribute] = '-';
+        //             }
+        //         }
+        //     }
+
+        //     $sample_test['predicted_label'] = $row[$labelAttribute];
+        //     $sample_data[] = $sample_test;
+        // }
+
+        $attribute_samples = [];
+        foreach ($split_training->getTrainSamples() as $attribute) {
+            $attribute_samples[] = $attribute;
+        }
+
+        foreach ($attribute_samples as $attribute_data) {
+            // Ambil satu baris data terkait dengan kategori
+            $row_sample = array_shift($data);
+
+            $samples_data = [];
+
+            foreach ($attribute_data as $attribute) {
+                // Pastikan atribut dan indeks data tersedia sebelum mencoba mengakses
+                if (isset($row_sample[$attribute])) {
+                    // Gantilah nilai null dengan tanda strip "-"
+                    $samples_data[$attribute] = $row_sample[$attribute];
+                } else {
+                    $samples_data[$attribute] = '-';
                 }
             }
 
-            $sample_test['predicted_label'] = $row[$labelAttribute];
-            $sample_data[] = $sample_test;
+            $samples_data['predicted_label'] = $row_sample[$labelAttribute];
+            $sample_data[] = $samples_data;
         }
 
         return $this->sendResponse($sample_data, 'Accuracy processed successfully');
