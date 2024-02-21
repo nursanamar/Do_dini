@@ -167,63 +167,35 @@ class HasilController extends BaseController
     }
 
 
-    public function getAcuracy(Request $request)
+    public function getAccuracy(Request $request)
     {
         // Ambil data dari database menggunakan model UploadExcel
         $data = UploadExcel::all()->toArray();
 
         $labelAttribute = 'class_status'; // Atur atribut label yang sesuai
 
-        $informationGains = [];
+        // Ambil jumlah data
+        $dataCount = count($data);
 
-        // Menghitung Information Gain untuk setiap atribut
-        $attributes = array_keys($data[0]); // Mengambil atribut dari model pertama
-        $labelAttributeIndex = array_search($labelAttribute, $attributes);
+        // Ambil atribut dari model pertama
+        $attributes = array_keys($data[0]);
 
-        if ($labelAttributeIndex !== false) {
-            unset($attributes[$labelAttributeIndex]); // Hapus atribut label dari array atribut
-        }
-
-        // Mengabaikan atribut 'id' dan 'uuid'
-        $ignoredAttributes = ['id', 'uuid', 'created_at', 'updated_at'];
+        // Hapus atribut 'id', 'uuid', 'created_at', 'updated_at', dan label dari array atribut
+        $ignoredAttributes = ['id', 'uuid', 'created_at', 'updated_at', $labelAttribute];
         $attributes = array_diff($attributes, $ignoredAttributes);
 
-        // Tentukan batas jumlah nilai null yang dapat diterima
-        $nullThreshold = 0.2; // 80%
-
-        foreach ($attributes as $attribute) {
-            // Hitung jumlah nilai null dalam atribut
-            $nullCount = 0;
-            foreach ($data as $row) {
-                if ($row[$attribute] === null || $row[$attribute] === '') {
-                    $nullCount++;
-                }
-            }
-
-            // Hitung Information Gain hanya jika jumlah nilai null tidak melebihi batas
-            if ($nullCount <= count($data) * $nullThreshold) {
-                $informationGain = $this->informationGain($data, $attribute, $labelAttribute);
-                $informationGains[$attribute] = $informationGain;
-            }
-        }
-
-        // Atribut dengan Information Gain tertinggi
-        arsort($informationGains);
-
-        // Mengambil N atribut teratas sesuai dengan nilai $params
-        $topNInformationGains = array_slice($informationGains, 0, $request->informationGain);
-
-        // Ambil atribut dari N teratas
-        $selectedAttributes = array_keys($topNInformationGains);
+        // Ambil atribut teratas berdasarkan Informasi Gain
+        $selectedAttributes = $this->getTopNAttributes($data, $attributes, $labelAttribute, $request->informationGain);
 
         $samples = [];
         $labels = [];
 
+        // Bangun dataset dengan atribut teratas
         foreach ($data as $row) {
             $sample = [];
             foreach ($selectedAttributes as $attribute) {
                 // Gantilah nilai null dengan tanda strip "-"
-                $sample[] = $attribute;
+                $sample[] = $row[$attribute] ?? '-';
             }
             $samples[] = $sample;
             $labels[] = $row[$labelAttribute];
@@ -231,9 +203,8 @@ class HasilController extends BaseController
 
         $dataset = new ArrayDataset($samples, $labels);
 
-        $crossValidationValue = $request->crossValidation;
-        // Mengonversi ke float
-        $percentage = floatval($crossValidationValue) / 100.0;
+        // Konversi ke float
+        $percentage = floatval($request->crossValidation) / 100.0;
 
         // Verifikasi bahwa nilai berada dalam rentang yang valid
         if ($percentage <= 0.0 || $percentage >= 1.0) {
@@ -241,11 +212,12 @@ class HasilController extends BaseController
             return $this->sendError('Invalid cross-validation percentage');
         }
 
-        // Lanjutkan dengan menggunakan $percentage seperti biasa
+        // Pisahkan data menjadi data pelatihan dan data uji
         $split = new StratifiedRandomSplit($dataset, $percentage);
 
         $accuracies = [];
 
+        // Lakukan pelatihan dan pengujian menggunakan Naive Bayes
         foreach ($split->getTrainSamples() as $trainIndexes) {
             $trainSamples = $dataset->getSamples($trainIndexes);
             $trainLabels = $dataset->getTargets($trainIndexes);
@@ -266,8 +238,31 @@ class HasilController extends BaseController
             $accuracies[] = $accuracy;
         }
 
+        // Hitung akurasi rata-rata
         $meanAccuracy = (array_sum($accuracies) / count($accuracies)) * 100;
 
         return $this->sendResponse($meanAccuracy, 'Accuracy processed successfully');
+    }
+
+    private function getTopNAttributes($data, $attributes, $labelAttribute, $informationGainParams)
+    {
+        $informationGains = [];
+
+        // Hitung Information Gain untuk setiap atribut
+        foreach ($attributes as $attribute) {
+            $informationGain = $this->informationGain($data, $attribute, $labelAttribute);
+            $informationGains[$attribute] = $informationGain;
+        }
+
+        // Atribut dengan Information Gain tertinggi
+        arsort($informationGains);
+
+        // Ambil N atribut teratas
+        $topNInformationGains = array_slice($informationGains, 0, $informationGainParams);
+
+        // Ambil atribut dari N teratas
+        $selectedAttributes = array_keys($topNInformationGains);
+
+        return $selectedAttributes;
     }
 }
