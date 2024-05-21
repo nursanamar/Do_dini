@@ -64,7 +64,6 @@ class ImplementasiController extends BaseController
     {
         // Ambil data dari database menggunakan model UploadExcel
         $data = UploadExcel::all()->toArray();
-
         $labelAttribute = 'class_status'; // Atur atribut label yang sesuai
 
         $samples = [];
@@ -72,58 +71,21 @@ class ImplementasiController extends BaseController
 
         // Membuat array kolom yang akan digunakan
         $columnsToUse = [
-            'id_masked',
-            'kategori_sekolah',
-            'jenis_kelamin',
-            'jalur_seleksi',
-            'ips1',
-            'sks1',
-            'ips2',
-            'sks2',
-            'ips3',
-            'sks3',
-            'ips4',
-            'sks4',
-            'akidah_akhlak',
-            'algoritma_pemrograman',
-            'bahasa_arab',
-            'bahasa_indonesia',
-            'bahasa_inggris',
-            'basis_data',
-            'elektronika',
-            'etika_profesi',
-            'fisika',
-            'ilmu_al_quran',
-            'ilmu_fikih',
-            'ilmu_hadis',
-            'interaksi_manusia_dan_komputer',
-            'jaringan_komputer',
-            'kecerdasan_buatan',
-            'kepemimpinan_dan_teamwork',
-            'kewirausahaan',
-            'logika_informatika',
-            'manajemen_proyek_teknologi_informasi',
-            'manajemen_umum',
-            'matematika_diskrit',
-            'matematika_komputer',
-            'matematika_komputer_dasar',
-            'mikroprosesor',
-            'organisasi_dan_arsitektur_komputer',
-            'pemrograman_berorientasi_objek',
-            'pemrograman_terstruktur',
-            'pemrograman_visual',
-            'pemrograman_web_2',
-            'pend_pancasila_dan_kewarganegaraan',
-            'pengantar_teknologi_informasi',
-            'probabilitas_dan_statistik',
-            'rekayasa_perangkat_lunak',
-            'sejarah_peradaban_islam',
-            'sistem_operasi_komputer',
-            'struktur_data',
-            'teknologi_dan_desain_web',
-            'teknologi_informasi',
-            'teknologi_multimedia_dan_game',
-            'teori_bahasa_dan_automata',
+            'id_masked', 'kategori_sekolah', 'jenis_kelamin', 'jalur_seleksi',
+            'ips1', 'sks1', 'ips2', 'sks2', 'ips3', 'sks3', 'ips4', 'sks4',
+            'akidah_akhlak', 'algoritma_pemrograman', 'bahasa_arab', 'bahasa_indonesia',
+            'bahasa_inggris', 'basis_data', 'elektronika', 'etika_profesi', 'fisika',
+            'ilmu_al_quran', 'ilmu_fikih', 'ilmu_hadis', 'interaksi_manusia_dan_komputer',
+            'jaringan_komputer', 'kecerdasan_buatan', 'kepemimpinan_dan_teamwork',
+            'kewirausahaan', 'logika_informatika', 'manajemen_proyek_teknologi_informasi',
+            'manajemen_umum', 'matematika_diskrit', 'matematika_komputer',
+            'matematika_komputer_dasar', 'mikroprosesor', 'organisasi_dan_arsitektur_komputer',
+            'pemrograman_berorientasi_objek', 'pemrograman_terstruktur', 'pemrograman_visual',
+            'pemrograman_web_2', 'pend_pancasila_dan_kewarganegaraan',
+            'pengantar_teknologi_informasi', 'probabilitas_dan_statistik',
+            'rekayasa_perangkat_lunak', 'sejarah_peradaban_islam', 'sistem_operasi_komputer',
+            'struktur_data', 'teknologi_dan_desain_web', 'teknologi_informasi',
+            'teknologi_multimedia_dan_game', 'teori_bahasa_dan_automata'
         ];
 
         foreach ($data as $row) {
@@ -139,52 +101,41 @@ class ImplementasiController extends BaseController
 
         $dataset = new ArrayDataset($samples, $labels);
 
-        // Lakukan pemisahan data dengan RandomSplit
+        // Lakukan pemisahan data dengan StratifiedRandomSplit
         $split = new StratifiedRandomSplit($dataset, 0.5);
 
-        foreach ($split->getTrainSamples() as $trainIndexes) {
-            $trainSamples = $dataset->getSamples($trainIndexes);
-            $trainLabels = $dataset->getTargets($trainIndexes);
+        // Ambil data pelatihan dan data uji
+        $trainSamples = $split->getTrainSamples();
+        $trainLabels = $split->getTrainLabels();
+        $testSamples = $split->getTestSamples();
+        $testLabels = $split->getTestLabels();
 
-            $naiveBayes = new NaiveBayes();
-            $naiveBayes->train($trainSamples, $trainLabels);
+        $naiveBayes = new \Phpml\Classification\NaiveBayes();
+        $naiveBayes->train($trainSamples, $trainLabels);
 
-            // Gunakan data uji yang tidak pernah digunakan dalam pelatihan
-            $testIndexes = array_diff(range(0, count($samples) - 1), $trainIndexes);
-            $testSamples = $dataset->getSamples($testIndexes);
-            $testLabels = $dataset->getTargets($testIndexes);
+        // Lakukan prediksi pada data uji
+        $predictedLabels = $naiveBayes->predict($testSamples);
 
-            // Lakukan prediksi pada data uji
-            $predictedLabels = $naiveBayes->predict($testSamples);
+        // Ambil data baru untuk prediksi setelah model dilatih
+        $newData = Implementasi::all()->toArray();
+        $samplesNew = [];
 
-            // Di sini, Anda melatih model pada data pelatihan dan melakukan prediksi pada data uji.
-
-            // Selanjutnya, Anda bisa melakukan prediksi pada data baru ($newData) setelah model dilatih.
-            $newData = Implementasi::all()->toArray();
-
-            $samplesNew = [];
-            $predictedLabel = [];
-
-            foreach ($newData as $rows) {
-                // Filter hanya kolom yang diperlukan
-                $sampleNew = [];
-                foreach ($columnsToUse as $attributes) {
-                    // Gantilah nilai null dengan tanda strip "-"
-                    $sampleNew[] = $rows[$attributes] ?? '-';
-                }
-                $samplesNew[] = $sampleNew;
+        foreach ($newData as $row) {
+            $sampleNew = [];
+            foreach ($columnsToUse as $attribute) {
+                // Gantilah nilai null dengan tanda strip "-"
+                $sampleNew[] = $row[$attribute] ?? '-';
             }
-
-            $predictedLabel = $naiveBayes->predict($samplesNew);
-
-            foreach ($newData as $key => $rows) {
-                $rows['predicted_label'] = $predictedLabels[$key];
-                $newData[$key] = $rows;
-            }
+            $samplesNew[] = $sampleNew;
         }
 
-        // ////////////////////////////////////////////////////////////////////////////////
+        $predictedNewLabels = $naiveBayes->predict($samplesNew);
 
+        foreach ($newData as $key => $row) {
+            $newData[$key]['predicted_label'] = $predictedNewLabels[$key];
+        }
+
+        // Konversi $newData untuk format respons
         $samples_training = [];
         $labels_training = [];
 
@@ -192,7 +143,7 @@ class ImplementasiController extends BaseController
             $sample = [];
             foreach ($columnsToUse as $attribute) {
                 // Gantilah nilai null dengan tanda strip "-"
-                $sample[] = $attribute;
+                $sample[] = $row[$attribute] ?? '-';
             }
             $samples_training[] = $sample;
             $labels_training[] = $row['predicted_label'];
@@ -200,56 +151,21 @@ class ImplementasiController extends BaseController
 
         $dataset_training = new ArrayDataset($samples_training, $labels_training);
 
-        // Lanjutkan dengan menggunakan $percentage seperti biasa
+        // Lakukan pemisahan data dengan StratifiedRandomSplit untuk pelatihan
         $split_training = new StratifiedRandomSplit($dataset_training, 0.8);
 
         $sample_data = [];
 
-        // foreach ($split_training->getTrainSamples() as $attribute_sample) {
-        //     $sample_test = [];
-
-        //     foreach ($attribute_sample as $attribute) {
-        //         foreach ($data as $row) {
-        //             // Pastikan atribut dan indeks data tersedia sebelum mencoba mengakses
-        //             if (isset($row[$attribute])) {
-        //                 $sample_test[$attribute] = $row[$attribute];
-        //             } else {
-        //                 // Gantilah nilai null dengan tanda strip "-"
-        //                 $sample_test[$attribute] = '-';
-        //             }
-        //         }
-        //     }
-
-        //     $sample_test['predicted_label'] = $row[$labelAttribute];
-        //     $sample_data[] = $sample_test;
-        // }
-
-        $attribute_samples = [];
-        foreach ($split_training->getTrainSamples() as $attribute) {
-            $attribute_samples[] = $attribute;
+        foreach ($split_training->getTrainSamples() as $trainSample) {
+            $sample_data[] = array_combine($columnsToUse, $trainSample);
         }
 
-        foreach ($attribute_samples as $attribute_data) {
-            // Ambil satu baris data terkait dengan kategori
-            $row_sample = array_shift($data);
-
-            $samples_data = [];
-
-            foreach ($attribute_data as $attribute) {
-                // Pastikan atribut dan indeks data tersedia sebelum mencoba mengakses
-                if (isset($row_sample[$attribute])) {
-                    // Gantilah nilai null dengan tanda strip "-"
-                    $samples_data[$attribute] = $row_sample[$attribute];
-                } else {
-                    $samples_data[$attribute] = '-';
-                }
-            }
-
-            $samples_data['predicted_label'] = $row_sample[$labelAttribute];
-            $sample_data[] = $samples_data;
+        foreach ($split_training->getTestSamples() as $index => $testSample) {
+            $sample_data[] = array_combine($columnsToUse, $testSample);
+            $sample_data[$index]['predicted_label'] = $split_training->getTestLabels()[$index];
         }
 
-        return $this->sendResponse($sample_data, 'Accuracy processed successfully');
+        return $this->sendResponse($sample_data, 'Prediction and accuracy processed successfully');
     }
 
     public function delete()
