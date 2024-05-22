@@ -32,7 +32,9 @@ class HasilController extends BaseController
 
         foreach ($classes as $classCount) {
             $probability = $classCount / $total;
-            $entropy -= $probability * log($probability, 2);
+            if ($probability > 0) {
+                $entropy -= $probability * log($probability, 2);
+            }
         }
 
         return $entropy;
@@ -104,7 +106,10 @@ class HasilController extends BaseController
             return $this->sendError('Invalid cross-validation percentage');
         }
 
+        // Set a seed for reproducibility
+        mt_srand(42);
         $split = new StratifiedRandomSplit($dataset, $percentage);
+
         $sample_data = [];
 
         foreach ($split->getTestSamples() as $index => $testSample) {
@@ -150,6 +155,8 @@ class HasilController extends BaseController
         $accuracies = [];
 
         for ($i = 0; $i < $numFolds; $i++) {
+            // Set a seed for reproducibility
+            mt_srand(42);
             $split = new StratifiedRandomSplit($dataset, $percentage);
 
             $trainSamples = $split->getTrainSamples();
