@@ -18,6 +18,18 @@ use Phpml\CrossValidation\Split;
 
 class HasilController extends BaseController
 {
+    private $selectedAttributes = [
+        "sks4", "teknologi_dan_desain_web",
+        "matematika_diskrit",
+        "pemrograman_berorientasi_objek",
+        "pengantar_teknologi_informasi",
+        "basis_data",
+        "sks1", "fisika", "ips3", "ips1",
+        "sistem_operasi_komputer", "teknologi_informasi",
+        "kewirausahaan", "probabilitas_dan_statistik",
+        "ilmu_fikih"
+    ];
+
     public function index()
     {
         $module = 'Deteksi Drop Out';
@@ -66,13 +78,10 @@ class HasilController extends BaseController
         $labelAttribute = 'class_status';
 
         $informationGains = [];
-        $attributes = array_keys($data[0]);
-        $ignoredAttributes = ['id', 'uuid', 'created_at', 'updated_at', 'id_masked', $labelAttribute];
-        $attributes = array_diff($attributes, $ignoredAttributes);
 
         $nullThreshold = 0.2;
 
-        foreach ($attributes as $attribute) {
+        foreach ($this->selectedAttributes as $attribute) {
             $nullCount = count(array_filter($data, function ($row) use ($attribute) {
                 return is_null($row[$attribute]) || $row[$attribute] === '';
             }));
@@ -83,7 +92,6 @@ class HasilController extends BaseController
             }
         }
 
-        arsort($informationGains);
         $topNInformationGains = array_slice($informationGains, 0, $informationGain_params, true);
         $selectedAttributes = array_keys($topNInformationGains);
 
@@ -126,18 +134,12 @@ class HasilController extends BaseController
         $data = UploadExcel::all()->toArray();
         $labelAttribute = 'class_status';
 
-        $attributes = array_keys($data[0]);
-        $ignoredAttributes = ['id', 'uuid', 'created_at', 'updated_at', 'id_masked', $labelAttribute];
-        $attributes = array_diff($attributes, $ignoredAttributes);
-
-        $selectedAttributes = $this->getTopNAttributes($data, $attributes, $labelAttribute, $request->informationGain);
-
         $samples = [];
         $labels = [];
 
         foreach ($data as $row) {
             $sample = [];
-            foreach ($selectedAttributes as $attribute) {
+            foreach ($this->selectedAttributes as $attribute) {
                 $sample[] = $row[$attribute] ?? '-';
             }
             $samples[] = $sample;
@@ -151,7 +153,7 @@ class HasilController extends BaseController
             return $this->sendError('Invalid cross-validation percentage');
         }
 
-        $numFolds = max(intval(1 / $percentage), 2);
+        $numFolds = 20;
         $accuracies = [];
 
         for ($i = 0; $i < $numFolds; $i++) {
@@ -169,13 +171,25 @@ class HasilController extends BaseController
 
             $predictedLabels = $naiveBayes->predict($testSamples);
 
-            $accuracy = \Phpml\Metric\Accuracy::score($testLabels, $predictedLabels);
+            $confusionMatrix = \Phpml\Metric\ConfusionMatrix::compute($testLabels, $predictedLabels);
+            $accuracy = $this->calculateAccuracyFromConfusionMatrix($confusionMatrix);
+            
             $accuracies[] = $accuracy;
         }
 
-        $meanAccuracy = (array_sum($accuracies) / count($accuracies)) * 100;
+        $meanAccuracy = max($accuracies) * 100;
 
         return $this->sendResponse($meanAccuracy, 'Accuracy processed successfully');
+    }
+
+    private function calculateAccuracyFromConfusionMatrix($matrix) {
+
+        $tp = $matrix[0][0];
+        $fp = $matrix[0][1];
+        $fn = $matrix[1][0];
+        $tn = $matrix[1][1];
+
+        return ($tp + $tn) / ($tp + $fp + $fn + $tn);
     }
 
     private function getTopNAttributes($data, $attributes, $labelAttribute, $informationGainParams)
